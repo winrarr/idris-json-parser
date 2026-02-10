@@ -2,7 +2,6 @@ module JsonParser
 
 import Data.String
 import Data.List
-import Data.Char
 
 -- A simple JSON type
 data JSON
@@ -13,18 +12,26 @@ data JSON
   | JArray (List JSON)
   | JObject (List (String, JSON))
 
+stringIntercalate : String -> List String -> String
+stringIntercalate sep xs =
+  pack (intercalate (unpack sep) (map unpack xs))
+
+covering
+showJSON : JSON -> String
+showJSON JNull        = "null"
+showJSON (JBool b)    = show b
+showJSON (JNumber n)  = show n
+showJSON (JString s)  = "\"" ++ s ++ "\""
+showJSON (JArray xs) =
+  "[" ++ stringIntercalate ", " (map showJSON xs) ++ "]"
+showJSON (JObject fields) =
+  let showField : (String, JSON) -> String
+      showField (k, v) = "\"" ++ k ++ "\": " ++ showJSON v
+  in "{" ++ stringIntercalate ", " (map showField fields) ++ "}"
+
 -- Show instance for debugging / printing
 implementation Show JSON where
-  show JNull        = "null"
-  show (JBool b)    = show b
-  show (JNumber n)  = show n
-  show (JString s)  = "\"" ++ s ++ "\""
-  show (JArray xs) =
-    "[" ++ String.intercalate ", " (map show xs) ++ "]"
-  show (JObject fields) =
-    let showField : (String, JSON) -> String
-        showField (k, v) = "\"" ++ k ++ "\": " ++ show v
-    in "{" ++ String.intercalate ", " (map showField fields) ++ "}"
+  show = assert_total showJSON
 
 -- Parser type
 
@@ -104,13 +111,6 @@ stringExact target = MkParser $ \s =>
         then Just (target, pack rest)
         else Nothing
 
--- Whitespace
-
-ws : Parser ()
-ws =
-  let p = satisfy isSpace in
-    many p *> pure ()
-
 -- Combinators `many` and `some` (Kleene star / plus)
 
 mutual
@@ -123,19 +123,26 @@ mutual
     xs <- many p
     pure (x :: xs)
 
+-- Whitespace
+
+ws : Parser ()
+ws =
+  let p = satisfy isSpace in
+    many p *> pure ()
+
 -- Digits and integers (only non-negative for now)
 
 digit : Parser Char
 digit = satisfy isDigit
+
+charToDigit : Char -> Integer
+charToDigit c = cast (ord c - ord '0')
 
 digitsToInt : List Char -> Integer
 digitsToInt = foldl step 0
   where
     step : Integer -> Char -> Integer
     step acc c = acc * 10 + charToDigit c
-
-    charToDigit : Char -> Integer
-    charToDigit c = cast (ord c - ord '0')
 
 integer : Parser Integer
 integer = do
@@ -167,7 +174,7 @@ sepBy : Parser a -> Parser sep -> Parser (List a)
 sepBy p sep =
   (do
       x  <- p
-      xs <- many (sep >> p)
+      xs <- many (sep *> p)
       pure (x :: xs))
   <|> pure []
 
