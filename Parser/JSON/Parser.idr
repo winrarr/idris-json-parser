@@ -20,7 +20,6 @@ digits1 = some digit
 
 sign : Parser (List Char)
 sign = (do _ <- char '-'; pure ['-'])
-   <|> (do _ <- char '+'; pure ['+'])
    <|> pure []
 
 intPart : Parser (List Char)
