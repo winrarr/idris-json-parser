@@ -1,4 +1,4 @@
-module Parser
+module Parser.Core
 
 import Data.String
 import Data.List

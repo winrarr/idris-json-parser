@@ -1,9 +1,8 @@
-module JSON
+module Parser.JSON.Types
 
 import Data.String
 import Data.List
 
--- A simple JSON type
 public export
   data JSON
     = JNull

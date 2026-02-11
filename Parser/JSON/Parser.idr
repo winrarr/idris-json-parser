@@ -1,11 +1,11 @@
-module JSONParser
+module Parser.JSON.Parser
 
 import Data.String
 import Data.List
 
-import Parser
+import Parser.Core
 import Parser.Combinators
-import JSON
+import Parser.JSON.Types
 
 -- Digits and numbers
 

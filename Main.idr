@@ -3,8 +3,8 @@ module Main
 import System
 import System.File
 
-import JSONParser
-import JSON
+import Parser.JSON.Parser
+import Parser.JSON.Types
 
 main : IO ()
 main = do

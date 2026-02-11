@@ -3,7 +3,7 @@ module Parser.Combinators
 import Data.String
 import Data.List
 
-import Parser
+import Parser.Core
 
 mutual
   public export
