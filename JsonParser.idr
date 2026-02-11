@@ -2,6 +2,8 @@ module JsonParser
 
 import Data.String
 import Data.List
+import System
+import System.File
 
 -- A simple JSON type
 data JSON
@@ -370,11 +372,20 @@ parseJSON = parse jsonValue
 
 main : IO ()
 main = do
-  putStrLn "Enter a JSON value on one line:"
-  line <- getLine
-  case parseJSON line of
-    Just v  => do
-      putStrLn "Parsed successfully:"
-      print v
-    Nothing =>
-      putStrLn "Parse error."
+  args <- getArgs
+  inputRes : Either FileError String <-
+    case args of
+      []            => readFile "/dev/stdin"
+      [_]           => readFile "/dev/stdin"
+      (_ :: p :: _) => readFile p
+  case inputRes of
+    Left err => do
+      putStrLn "File error:"
+      print err
+    Right input => do
+      case parseJSON input of
+        Just v  => do
+          putStrLn "Parsed successfully:"
+          print v
+        Nothing =>
+          putStrLn "Parse error."

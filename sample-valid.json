@@ -1,0 +1,10 @@
+{
+  "name": "Idris",
+  "active": true,
+  "count": 3,
+  "ratio": 0.125,
+  "exp": -12.34e+2,
+  "tags": ["json", "parser", "rfc8259"],
+  "nested": {"a": [1, 2, 3], "b": null},
+  "escaped": "quote=\" slash=\\ newline=\n unicode=\u263A"
+}
