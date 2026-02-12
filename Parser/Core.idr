@@ -44,12 +44,29 @@ public export
     Nothing  => p2 s
 
 public export
-parse : Parser a -> String -> Maybe a
-parse p s =
+parseWith : (Char -> Bool) -> Parser a -> String -> Maybe a
+parseWith pred p s =
   case runParser p s of
     Just (x, rest) =>
-      if all isSpace (unpack rest) then Just x else Nothing
+      if all pred (unpack rest) then Just x else Nothing
     Nothing => Nothing
+
+public export
+parseAll : Parser a -> String -> Maybe a
+parseAll p s =
+  case runParser p s of
+    Just (x, rest) =>
+      if rest == "" then Just x else Nothing
+    Nothing => Nothing
+
+public export
+parse : Parser a -> String -> Maybe a
+parse = parseAll
+
+public export
+isJsonWhitespace : Char -> Bool
+isJsonWhitespace c =
+  c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 public export
 anyChar : Parser Char

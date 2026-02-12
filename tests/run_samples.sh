@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$ROOT_DIR/build/exec/jsonparser"
 
-if [[ ! -x "$BIN" ]]; then
+if [[ ! -x "$BIN" ]] || find "$ROOT_DIR" -name '*.idr' -newer "$BIN" -print -quit | grep -q .; then
   idris2 "$ROOT_DIR/Main.idr" -o jsonparser
 fi
 
@@ -29,7 +29,7 @@ run_case() {
   local file="$2"
   local expect_pattern="$3"
 
-  printf "%-32s" "$name"
+  printf "%-42s" "$name"
   local output
   output="$("$BIN" "$file")"
   if ! grep -q "$expect_pattern" <<< "$output"; then
@@ -65,6 +65,10 @@ run_case "invalid-escape" "$ROOT_DIR/samples/sample-invalid-escape.json" "Parse 
 run_case "invalid-bad-unicode" "$ROOT_DIR/samples/sample-invalid-bad-unicode.json" "Parse error."
 run_case "invalid-low-surrogate" "$ROOT_DIR/samples/sample-invalid-low-surrogate.json" "Parse error."
 run_case "invalid-high-surrogate-no-low" "$ROOT_DIR/samples/sample-invalid-high-surrogate-no-low.json" "Parse error."
+run_case "invalid-nonjson-whitespace" "$ROOT_DIR/samples/sample-invalid-nonjson-whitespace.json" "Parse error."
+run_case "invalid-nonjson-whitespace-between" "$ROOT_DIR/samples/sample-invalid-nonjson-whitespace-between.json" "Parse error."
+run_case "invalid-nonjson-whitespace-eof" "$ROOT_DIR/samples/sample-invalid-nonjson-whitespace-eof.json" "Parse error."
+run_case "invalid-unicode-digit" "$ROOT_DIR/samples/sample-invalid-unicode-digit.json" "Parse error."
 run_case "invalid-unexpected-char" "$ROOT_DIR/samples/sample-invalid-unexpected-char.json" "Parse error."
 run_case "invalid-array-missing-comma" "$ROOT_DIR/samples/sample-invalid-array-missing-comma.json" "Parse error."
 run_case "invalid-unclosed-array" "$ROOT_DIR/samples/sample-invalid-unclosed-array.json" "Parse error."

@@ -9,8 +9,15 @@ import Parser.JSON.Types
 
 -- Digits and numbers
 
+isDigitAscii : Char -> Bool
+isDigitAscii c = c >= '0' && c <= '9'
+
+isHexDigitAscii : Char -> Bool
+isHexDigitAscii c =
+  isDigitAscii c || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+
 digit : Parser Char
-digit = satisfy isDigit
+digit = satisfy isDigitAscii
 
 digit1to9 : Parser Char
 digit1to9 = satisfy (\c => c >= '1' && c <= '9')
@@ -52,6 +59,7 @@ numberLiteral = do
   i <- intPart
   f <- fracPart
   e <- expPart
+  ws
   pure (pack (s ++ i ++ f ++ e))
 
 -- JSON string literal with escapes per RFC 8259
@@ -60,7 +68,7 @@ isControlChar : Char -> Bool
 isControlChar c = ord c < 32
 
 hexDigit : Parser Char
-hexDigit = satisfy isHexDigit
+hexDigit = satisfy isHexDigitAscii
 
 hexValue : Char -> Int
 hexValue c =
@@ -150,7 +158,7 @@ jsonBool =
 
 jsonNumber : Parser JSON
 jsonNumber = do
-  n <- lexeme numberLiteral
+  n <- numberLiteral
   pure (JNumber n)
 
 jsonString : Parser JSON
@@ -191,4 +199,4 @@ mutual
 
 public export
 parseJSON : String -> Maybe JSON
-parseJSON = parse (ws *> jsonValue)
+parseJSON = parseWith isJsonWhitespace (ws *> jsonValue)

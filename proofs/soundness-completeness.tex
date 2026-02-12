@@ -73,9 +73,10 @@ language implementation details.
   \end{enumerate}
   We only use $\mathsf{many}$ and $\mathsf{sepBy}$ with parsers that do not
   accept the empty string, so the maximality conditions above are well-defined.
-  \item \textbf{Whitespace.} Let $W = \mathrm{WS}^\ast$ (all whitespace strings).
-  The parser $\ws$ always succeeds, consuming the longest prefix $w \in W$ and
-  leaving the remaining suffix.
+  \item \textbf{Whitespace.} Let
+  $W = \{ \texttt{" "}, \texttt{"\textbackslash t"}, \texttt{"\textbackslash r"}, \texttt{"\textbackslash n"} \}^\ast$
+  (JSON whitespace). The parser $\ws$ always succeeds, consuming the longest
+  prefix $w \in W$ and leaving the remaining suffix.
   \item \textbf{Lexemes.}
   \begin{enumerate}
     \item $\mathsf{symbol}(c)$ succeeds iff the input starts with character $c$,
@@ -145,7 +146,7 @@ follows:
   the set of all non-empty such concatenations.
   \item If a rule contains $R?$, then $L(R?) = L(R) \cup \{\epsilon\}$.
 \end{enumerate}
-We treat $W$ as a distinguished nonterminal with language $\mathrm{WS}^\ast$,
+We treat $W$ as a distinguished nonterminal with the JSON whitespace language,
 as given by the axioms.
 
 \paragraph{Parser specification (algorithm).}
@@ -178,7 +179,8 @@ not affect input consumption.
 \section*{Soundness}
 
 \paragraph{Theorem (Soundness).}
-If $\parse(\mathsf{jsonValue}, s) = \mathrm{Just}(v)$, then $s \in L(\mathsf{value})$.
+If $\parse(\ws \seq \mathsf{jsonValue}, s) = \mathrm{Just}(v)$, then
+$s \in L(\mathsf{value})$.
 
 \paragraph{Proof.}
 We prove soundness for the mutually recursive parsers
@@ -195,47 +197,51 @@ parser specification, $\mathsf{jsonNull}$, $\mathsf{jsonBool}$,
 $\mathsf{jsonNumber}$, and $\mathsf{jsonString}$ consume the same languages.
 
 \paragraph{Lemma S2 (object field soundness).}
-$\mathsf{objectField}$ consumes a $\mathsf{string}$, then $\texttt{":"}$,
-then $W$, then a $\mathsf{value}$. By Lemma S1, Axiom 3, and Axiom 4
+$\mathsf{objectField}$ consumes a $\mathsf{string}$, then
+$\mathsf{symbol}(\texttt{":"})$, then a $\mathsf{value}$. By Lemma S1, Axiom 3,
+and Axiom 4
 (sequencing), and the mutual induction hypothesis that $\mathsf{jsonValue}$ is
 sound for $\mathsf{value}$, its consumed prefix is in $L(\mathsf{member})$.
 
 \paragraph{Lemma S3 (array soundness).}
-$\mathsf{jsonArray}$ consumes $\texttt{"["}W$, then a $\mathsf{sepBy}$ list of
-$\mathsf{value}$ separated by $\mathsf{comma}$, then $\texttt{"]"}W$.
+$\mathsf{jsonArray}$ consumes $\mathsf{symbol}(\texttt{"["})$, then a
+$\mathsf{sepBy}$ list of $\mathsf{value}$ separated by $\mathsf{comma}$, then
+$\mathsf{symbol}(\texttt{"]"})$.
 By Lemma S1, Axiom 4 (sequencing and sepBy), and the mutual induction
 hypothesis for $\mathsf{jsonValue}$, its consumed prefix is in
 $L(\mathsf{array})$.
 
 \paragraph{Lemma S4 (object soundness).}
-$\mathsf{jsonObject}$ consumes $\texttt{"\{"}W$, then a $\mathsf{sepBy}$ list of
-$\mathsf{member}$ separated by $\mathsf{comma}$, then $\texttt{"\}"}W$.
+$\mathsf{jsonObject}$ consumes $\mathsf{symbol}(\texttt{"\{"})$, then a
+$\mathsf{sepBy}$ list of $\mathsf{member}$ separated by $\mathsf{comma}$, then
+$\mathsf{symbol}(\texttt{"\}"})$.
 By Lemmas S1 and S2 and Axiom 4, its consumed prefix is in
 $L(\mathsf{object})$.
 
 \paragraph{Lemma S5 (value soundness).}
-$\mathsf{jsonValue}$ consumes $W$ then chooses among parsers for
-$\mathsf{object}$, $\mathsf{array}$, $\mathsf{string}$, $\mathsf{number}$,
-$\mathsf{true}$, $\mathsf{false}$, or $\mathsf{null}$. By Lemmas S1, S3, S4 and
-Axiom 4 (choice), any success yields a prefix in $L(\mathsf{value})$.
+$\mathsf{jsonValue}$ chooses among parsers for $\mathsf{object}$,
+$\mathsf{array}$, $\mathsf{string}$, $\mathsf{number}$, $\mathsf{true}$,
+$\mathsf{false}$, or $\mathsf{null}$. By Lemmas S1, S3, S4 and Axiom 4 (choice),
+any success yields a prefix in $L(\mathsf{value})$ with no leading whitespace.
 
 The lemmas are mutually consistent, so by mutual induction the soundness of
-$\mathsf{jsonValue}$ holds. With top-level acceptance, the theorem follows; any
-residual $r \in W$ can be appended to a string in $L(\mathsf{value})$ without
-leaving the language because $W$ is closed under concatenation. \qed
+$\mathsf{jsonValue}$ holds. With top-level acceptance, the theorem follows
+because $\ws$ accounts for any leading $W$, and any residual $r \in W$ can be
+appended to a string in $L(\mathsf{value})$ without leaving the language
+because $W$ is closed under concatenation. \qed
 
 \section*{Completeness}
 
 \paragraph{Theorem (Completeness).}
 If $s \in L(\mathsf{value})$, then there exists $v$ such that
-$\parse(\mathsf{jsonValue}, s) = \mathrm{Just}(v)$.
+$\parse(\ws \seq \mathsf{jsonValue}, s) = \mathrm{Just}(v)$.
 
 \paragraph{Proof.}
 We prove completeness for the same mutually recursive parsers by mutual
 induction on the grammar, using the axioms.
 
 \paragraph{Lemma C1 (lexeme completeness).}
-By Axioms 5 and 6, $\ws$, $\mathsf{keyword}$, $\mathsf{comma}$,
+By Axioms 5 and 6, $\ws$, $\mathsf{symbol}$, $\mathsf{keyword}$, $\mathsf{comma}$,
 $\mathsf{stringLiteral}$, and $\mathsf{numberLiteral}$ consume the longest
 prefixes in the languages of $W$, $\mathsf{true}$/$\mathsf{false}$/$\mathsf{null}$,
 $\mathsf{comma}$, $\mathsf{string}$, and $\mathsf{number}$ respectively. By the
@@ -244,32 +250,35 @@ $\mathsf{jsonNumber}$, and $\mathsf{jsonString}$ consume the same languages.
 
 \paragraph{Lemma C2 (object field completeness).}
 If $s \in L(\mathsf{member})$, then by the grammar $s$ is a concatenation of
-a $\mathsf{string}$, $\texttt{":"}$, $W$, and a $\mathsf{value}$. By Lemma C1 and
-Axiom 4 (sequencing), and the mutual induction hypothesis that
+a $\mathsf{string}$, $\mathsf{symbol}(\texttt{":"})$, and a $\mathsf{value}$. By
+Lemma C1 and Axiom 4 (sequencing), and the mutual induction hypothesis that
 $\mathsf{jsonValue}$ is complete for $\mathsf{value}$, $\mathsf{objectField}$
 succeeds on $s$.
 
 \paragraph{Lemma C3 (array completeness).}
-If $s \in L(\mathsf{array})$, then $s$ matches $\texttt{"["}W$, then a possibly
-empty list of $\mathsf{value}$ separated by $\mathsf{comma}$, then $\texttt{"]"}W$.
+If $s \in L(\mathsf{array})$, then $s$ matches $\mathsf{symbol}(\texttt{"["})$,
+then a possibly empty list of $\mathsf{value}$ separated by $\mathsf{comma}$,
+then $\mathsf{symbol}(\texttt{"]"})$.
 By Lemma C1, Axiom 4 (sepBy), and the mutual induction hypothesis for
 $\mathsf{jsonValue}$, $\mathsf{jsonArray}$ succeeds on $s$.
 
 \paragraph{Lemma C4 (object completeness).}
-If $s \in L(\mathsf{object})$, then $s$ matches $\texttt{"\{"}W$, then a possibly
-empty list of $\mathsf{member}$ separated by $\mathsf{comma}$, then $\texttt{"\}"}W$.
+If $s \in L(\mathsf{object})$, then $s$ matches
+$\mathsf{symbol}(\texttt{"\{"})$, then a possibly empty list of
+$\mathsf{member}$ separated by $\mathsf{comma}$, then
+$\mathsf{symbol}(\texttt{"\}"})$.
 By Lemmas C1 and C2 and Axiom 4, $\mathsf{jsonObject}$ succeeds on $s$.
 
 \paragraph{Lemma C5 (value completeness).}
-If $s \in L(\mathsf{value})$, then by the grammar $s$ is in $W$ followed by one
-of the alternatives. By Lemmas C1--C4 and Axiom 4 (choice), $\mathsf{jsonValue}$
-succeeds on $s$; left bias does not prevent success because choice succeeds
-whenever at least one branch succeeds.
+If $s \in L(\mathsf{value})$, then by the grammar $s = w t$ for some $w \in W$
+followed by one of the alternatives. By Lemmas C1--C4 and Axiom 4 (choice),
+$\mathsf{jsonValue}$ succeeds on $t$; left bias does not prevent success because
+choice succeeds whenever at least one branch succeeds.
 
 The lemmas are mutually consistent, so by mutual induction the completeness of
 $\mathsf{jsonValue}$ holds. Because the grammar for each alternative already
-includes trailing $W$ and $\ws$ consumes the leading whitespace prefix,
-$\mathsf{jsonValue}$ consumes the entire input $s$ when
+includes trailing $W$ and $\ws$ consumes the leading whitespace prefix, the
+parser $\ws \seq \mathsf{jsonValue}$ consumes the entire input $s$ when
 $s \in L(\mathsf{value})$, leaving $r = \epsilon \in W$. With top-level
 acceptance, the theorem follows. \qed
 

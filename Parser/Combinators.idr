@@ -20,7 +20,7 @@ mutual
 public export
 ws : Parser ()
 ws =
-  let p = satisfy isSpace in
+  let p = satisfy isJsonWhitespace in
     many p *> pure ()
 
 public export

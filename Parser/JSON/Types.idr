@@ -56,7 +56,7 @@ showJSON (JArray xs) =
   "[" ++ stringIntercalate ", " (map showJSON xs) ++ "]"
 showJSON (JObject fields) =
   let showField : (String, JSON) -> String
-      showField (k, v) = "\"" ++ k ++ "\": " ++ showJSON v
+      showField (k, v) = "\"" ++ escapeString k ++ "\": " ++ showJSON v
   in "{" ++ stringIntercalate ", " (map showField fields) ++ "}"
 
 public export
