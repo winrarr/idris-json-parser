@@ -22,6 +22,11 @@ sign : Parser (List Char)
 sign = (do _ <- char '-'; pure ['-'])
    <|> pure []
 
+expSign : Parser (List Char)
+expSign = (do _ <- char '-'; pure ['-'])
+      <|> (do _ <- char '+'; pure ['+'])
+      <|> pure []
+
 intPart : Parser (List Char)
 intPart =
   (do _ <- char '0'; pure ['0'])
@@ -36,7 +41,7 @@ fracPart =
 expPart : Parser (List Char)
 expPart =
   (do e <- (char 'e' <|> char 'E')
-      s <- sign
+      s <- expSign
       ds <- digits1
       pure (e :: s ++ ds))
   <|> pure []
