@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$ROOT_DIR/build/exec/jsonparser"
 
 if [[ ! -x "$BIN" ]] || find "$ROOT_DIR" -name '*.idr' -newer "$BIN" -print -quit | grep -q .; then
-  idris2 "$ROOT_DIR/Main.idr" -o jsonparser
+  idris2 "$ROOT_DIR/MainJSON.idr" -o jsonparser
 fi
 
 # Fuzz with guaranteed-invalid inputs.

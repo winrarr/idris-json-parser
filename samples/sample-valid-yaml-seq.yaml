@@ -1,0 +1,4 @@
+- name: foo
+  val: 1
+- name: bar
+  val: 2
