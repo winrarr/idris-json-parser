@@ -24,6 +24,17 @@ ws =
     many p *> pure ()
 
 public export
+lexeme : Parser a -> Parser a
+lexeme p = do
+  x <- p
+  ws
+  pure x
+
+public export
+symbol : Char -> Parser Char
+symbol c = lexeme (char c)
+
+public export
 sepBy : Parser a -> Parser sep -> Parser (List a)
 sepBy p sep =
   (do

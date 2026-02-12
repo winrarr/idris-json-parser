@@ -5,15 +5,8 @@ import System.File
 
 import Parser.JSON.Parser
 import Parser.JSON.Types
-
-main : IO ()
-main = do
-  args <- getArgs
-  inputRes : Either FileError String <-
-    case args of
-      []            => readFile "/dev/stdin"
-      [_]           => readFile "/dev/stdin"
-      (_ :: p :: _) => readFile p
+handleInput : Either FileError String -> IO ()
+handleInput inputRes =
   case inputRes of
     Left err => do
       putStrLn "File error:"
@@ -25,3 +18,11 @@ main = do
           print v
         Nothing =>
           putStrLn "Parse error."
+
+main : IO ()
+main = do
+  args <- getArgs
+  case args of
+    [_]        => handleInput =<< readFile "/dev/stdin"
+    [_ , p]    => handleInput =<< readFile p
+    _          => putStrLn "Usage: jsonparser [FILE]"

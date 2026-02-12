@@ -1,0 +1,11 @@
+{
+  "zero": 0,
+  "negZero": -0,
+  "int": 123,
+  "neg": -987,
+  "frac": 3.1415,
+  "exp": 1e2,
+  "expNeg": 1e-2,
+  "expPlus": 1e+2,
+  "combo": -12.34e+2
+}

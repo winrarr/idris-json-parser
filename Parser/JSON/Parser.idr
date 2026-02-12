@@ -52,7 +52,6 @@ numberLiteral = do
   i <- intPart
   f <- fracPart
   e <- expPart
-  ws
   pure (pack (s ++ i ++ f ++ e))
 
 -- JSON string literal with escapes per RFC 8259
@@ -123,24 +122,20 @@ stringChar =
   escapeChar <|> satisfy (\c => c /= '"' && c /= '\\' && not (isControlChar c))
 
 stringLiteral : Parser String
-stringLiteral = do
-  _     <- char '"'
-  chars <- many stringChar
-  _     <- char '"'
-  ws
-  pure (pack chars)
+stringLiteral =
+  lexeme $ do
+    _     <- char '"'
+    chars <- many stringChar
+    _     <- char '"'
+    pure (pack chars)
 
 keyword : String -> Parser String
-keyword s = do
+keyword s = lexeme $ do
   _ <- stringExact s
-  ws
   pure s
 
 comma : Parser Char
-comma = do
-  _ <- char ','
-  ws
-  pure ','
+comma = symbol ','
 
 jsonNull : Parser JSON
 jsonNull = do
@@ -155,7 +150,7 @@ jsonBool =
 
 jsonNumber : Parser JSON
 jsonNumber = do
-  n <- numberLiteral
+  n <- lexeme numberLiteral
   pure (JNumber n)
 
 jsonString : Parser JSON
@@ -165,8 +160,7 @@ jsonString = do
 
 mutual
   jsonValue : Parser JSON
-  jsonValue = do
-    ws
+  jsonValue =
     jsonNull
       <|> jsonBool
       <|> jsonNumber
@@ -176,30 +170,25 @@ mutual
 
   jsonArray : Parser JSON
   jsonArray = do
-    _   <- char '['
-    ws
+    _   <- symbol '['
     xs  <- sepBy jsonValue comma
-    _   <- char ']'
-    ws
+    _   <- symbol ']'
     pure (JArray xs)
 
   jsonObject : Parser JSON
   jsonObject = do
-    _      <- char '{'
-    ws
+    _      <- symbol '{'
     fields <- sepBy objectField comma
-    _      <- char '}'
-    ws
+    _      <- symbol '}'
     pure (JObject fields)
 
   objectField : Parser (String, JSON)
   objectField = do
     key <- stringLiteral
-    _   <- char ':'
-    ws
+    _   <- symbol ':'
     val <- jsonValue
     pure (key, val)
 
 public export
 parseJSON : String -> Maybe JSON
-parseJSON = parse jsonValue
+parseJSON = parse (ws *> jsonValue)

@@ -1,0 +1,8 @@
+{
+  "quote": "\"",
+  "backslash": "\\",
+  "slash": "\/",
+  "controls": "\b\f\n\r\t",
+  "unicode": "\u263A",
+  "surrogate": "\uD83D\uDE00"
+}

@@ -78,6 +78,8 @@ language implementation details.
   leaving the remaining suffix.
   \item \textbf{Lexemes.}
   \begin{enumerate}
+    \item $\mathsf{symbol}(c)$ succeeds iff the input starts with character $c$,
+    and in that case consumes it followed by the longest prefix in $W$.
     \item $\mathsf{keyword}(t)$ succeeds iff the input starts with $t$, and in
     that case consumes $t$ followed by the longest prefix in $W$.
     \item $\mathsf{comma}$ succeeds iff the input starts with $\texttt{","}$,
@@ -157,19 +159,20 @@ not affect input consumption.
   \item $\mathsf{jsonNumber}$ parses $\mathsf{numberLiteral}$.
   \item $\mathsf{jsonString}$ parses $\mathsf{stringLiteral}$.
   \item $\mathsf{objectField}$ parses
-  $\mathsf{stringLiteral} \seq \mathsf{char}(\texttt{":"}) \seq \ws \seq
+  $\mathsf{stringLiteral} \seq \mathsf{symbol}(\texttt{":"}) \seq
   \mathsf{jsonValue}$.
   \item $\mathsf{jsonArray}$ parses
-  $\mathsf{char}(\texttt{"["}) \seq \ws \seq
+  $\mathsf{symbol}(\texttt{"["}) \seq
   \mathsf{sepBy}(\mathsf{jsonValue}, \mathsf{comma}) \seq
-  \mathsf{char}(\texttt{"]"}) \seq \ws$.
+  \mathsf{symbol}(\texttt{"]"})$.
   \item $\mathsf{jsonObject}$ parses
-  $\mathsf{char}(\texttt{"\{"}) \seq \ws \seq
+  $\mathsf{symbol}(\texttt{"\{"}) \seq
   \mathsf{sepBy}(\mathsf{objectField}, \mathsf{comma}) \seq
-  \mathsf{char}(\texttt{"\}"}) \seq \ws$.
-  \item $\mathsf{jsonValue}$ parses $\ws \seq (\mathsf{jsonNull} <|>
+  \mathsf{symbol}(\texttt{"\}"})$.
+  \item $\mathsf{jsonValue}$ parses $(\mathsf{jsonNull} <|>
   \mathsf{jsonBool} <|> \mathsf{jsonNumber} <|> \mathsf{jsonString} <|>
   \mathsf{jsonArray} <|> \mathsf{jsonObject})$.
+  \item The top-level parser is $\parse(\ws \seq \mathsf{jsonValue}, s)$.
 \end{enumerate}
 
 \section*{Soundness}
@@ -184,7 +187,7 @@ $\mathsf{objectField}$ by mutual induction on their definitions, using the
 axioms for primitives, lexemes, and combinators.
 
 \paragraph{Lemma S1 (lexeme soundness).}
-By Axioms 5 and 6, $\ws$, $\mathsf{keyword}$, $\mathsf{comma}$,
+By Axioms 5 and 6, $\ws$, $\mathsf{symbol}$, $\mathsf{keyword}$, $\mathsf{comma}$,
 $\mathsf{stringLiteral}$, and $\mathsf{numberLiteral}$ consume the longest
 prefixes in the languages of $W$, $\mathsf{true}$/$\mathsf{false}$/$\mathsf{null}$,
 $\mathsf{comma}$, $\mathsf{string}$, and $\mathsf{number}$ respectively. By the
